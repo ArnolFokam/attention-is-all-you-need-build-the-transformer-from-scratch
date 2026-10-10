@@ -194,8 +194,28 @@ def apply_attention_weights_to_values(attention_weights, value):
     # TODO: combine attention weights (..., Lq, Lk) with value (..., Lk, d_v)
     return attention_weights @ value
 
-# Step 22 - scaled_dot_product_attention (not yet solved)
-# TODO: implement
+# Step 22 - scaled_dot_product_attention
+import torch
+
+def scaled_dot_product_attention(query, key, value, mask=None):
+    """Run scaled dot-product attention; return (context, attention_weights)."""
+    # TODO: chain raw scores, scale by sqrt(d_k), optionally mask, softmax, then mix values
+    
+    # compute the attention scores
+    scores = query @ key.transpose(-1, -2)
+    scores /= (key.shape[-1] ** 0.5)
+
+    # perform masking
+    if mask is not None:
+        scores = scores.masked_fill(~mask, float('-inf'))
+
+    # compute the softmax
+    row_max = scores.amax(dim=-1, keepdims=True)
+    row_max = row_max.masked_fill(row_max == float('-inf'), 0)
+    row_max = torch.exp(scores - row_max)
+    weights = row_max / row_max.sum(dim=-1, keepdims=True).clamp_min(1e-12)
+
+    return (weights @ value, weights)
 
 # Step 23 - split_last_dim_into_heads (not yet solved)
 # TODO: implement
