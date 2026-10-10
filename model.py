@@ -377,8 +377,22 @@ def apply_ffn_second_linear(hidden, w2, b2):
 
     return proj
 
-# Step 34 - position_wise_feed_forward_network (not yet solved)
-# TODO: implement
+# Step 34 - position_wise_feed_forward_network
+def position_wise_feed_forward_network(x, w1, b1, w2, b2):
+    # TODO: compose the two FFN linears with a ReLU in between, returning shape (B, T, d_model).
+    proj = x @ w1
+
+    if b1 is not None:
+        proj += b1
+
+    proj = proj.masked_fill(proj < 0, 0)
+
+    proj = proj @ w2
+
+    if b2 is not None:
+        proj += b2
+
+    return proj
 
 # Step 35 - compute_layer_norm_mean_and_variance (not yet solved)
 # TODO: implement
