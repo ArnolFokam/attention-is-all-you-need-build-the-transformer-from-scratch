@@ -312,8 +312,48 @@ def merge_heads_and_project_output(context, w_o, b_o):
     trans_ctx = context.transpose(1, 2).flatten(-2)
     return torch.nn.functional.linear(trans_ctx, w_o, b_o)
 
-# Step 31 - assemble_multi_head_attention_forward (not yet solved)
-# TODO: implement
+# Step 31 - assemble_multi_head_attention_forward
+def assemble_multi_head_attention_forward(query, key, value, w_q, w_k, w_v, w_o, num_heads, mask=None):
+    # TODO: project Q/K/V, split into heads, run scaled dot-product attention, merge heads, output projection.
+
+    v = torch.nn.functional.linear(value, w_v)
+    q = torch.nn.functional.linear(query, w_q)
+    k = torch.nn.functional.linear(key, w_k)
+
+    d_model = q.shape[-1]
+
+    q = q.reshape(
+        *q.shape[:-1],
+        num_heads,
+        d_model // num_heads,
+    ).transpose(1, 2)
+    k = k.reshape(
+        *k.shape[:-1],
+        num_heads,
+        d_model // num_heads,
+    ).transpose(1, 2)
+    v = v.reshape(
+        *v.shape[:-1],
+        num_heads,
+        d_model // num_heads,
+    ).transpose(1, 2)
+
+    # 1 perform attention
+    scores = q @ k.transpose(-1, -2) # B x H x L_q x L_k
+    scores /= ((d_model // num_heads) ** 0.5)
+
+    if mask is not None:
+        scores = scores.masked_fill(~mask, float('-inf'))
+
+    row_max = scores.amax(dim=-1, keepdims=True)
+    row_max = row_max.masked_fill(row_max == float('-inf'), 0.0)
+    weights = torch.exp(scores - row_max)
+    weights /= weights.sum(dim=-1, keepdims=True).clamp_min(1e-12)
+
+    out = weights @ v # B x H x L_q x d_k
+    out = out.transpose(1, 2).flatten(-2) # B x L_q x (H * d_k)
+
+    return torch.nn.functional.linear(out, w_o)
 
 # Step 32 - apply_ffn_first_linear_and_relu (not yet solved)
 # TODO: implement
