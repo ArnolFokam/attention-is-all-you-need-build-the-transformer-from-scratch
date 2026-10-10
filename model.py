@@ -304,8 +304,13 @@ def multi_head_scaled_dot_product_attention(q_h, k_h, v_h, mask=None):
 
     return ctx, attn_weights
 
-# Step 30 - merge_heads_and_project_output (not yet solved)
-# TODO: implement
+# Step 30 - merge_heads_and_project_output
+import torch
+
+def merge_heads_and_project_output(context, w_o, b_o):
+    # TODO: merge the head axis back into d_model and apply the output linear projection.
+    trans_ctx = context.transpose(1, 2).flatten(-2)
+    return torch.nn.functional.linear(trans_ctx, w_o, b_o)
 
 # Step 31 - assemble_multi_head_attention_forward (not yet solved)
 # TODO: implement
