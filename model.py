@@ -465,8 +465,30 @@ def encoder_layer_feed_forward_sublayer(x, w1, b1, w2, b2, gamma, beta):
         x, proj, gamma, beta,
     )
 
-# Step 41 - assemble_encoder_layer (not yet solved)
-# TODO: implement
+# Step 41 - assemble_encoder_layer
+def assemble_encoder_layer(x, layer_params, num_heads, src_mask):
+    # TODO: chain the self-attention sublayer and the feed-forward sublayer using layer_params.
+    out = encoder_layer_self_attention_sublayer(
+        x, 
+        layer_params["w_q"], 
+        layer_params["w_k"], 
+        layer_params["w_v"], 
+        layer_params["w_o"], 
+        layer_params["ffn_gamma"], 
+        layer_params["ffn_beta"], 
+        num_heads, 
+        src_mask,
+    )
+
+    return encoder_layer_feed_forward_sublayer(
+        out, 
+        layer_params["w1"], 
+        layer_params["b1"],
+        layer_params["w2"], 
+        layer_params["b2"],
+        layer_params["ffn_gamma"], 
+        layer_params["ffn_beta"],
+    )
 
 # Step 42 - stack_encoder_layers (not yet solved)
 # TODO: implement
