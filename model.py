@@ -343,8 +343,10 @@ def assemble_multi_head_attention_forward(query, key, value, w_q, w_k, w_v, w_o,
     scores /= ((d_model // num_heads) ** 0.5)
 
     if mask is not None:
-        if mask.dim() == 3:
-            mask = mask.unsqueeze(1)  
+        if mask.dim() == 2:                 # (B, L_k)        padding mask
+            mask = mask[:, None, None, :]
+        elif mask.dim() == 3:               # (B, L_q|1, L_k) no head axis
+            mask = mask[:, None, :, :]
         scores = scores.masked_fill(~mask, float('-inf'))
 
     row_max = scores.amax(dim=-1, keepdims=True)
