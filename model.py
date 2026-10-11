@@ -343,6 +343,8 @@ def assemble_multi_head_attention_forward(query, key, value, w_q, w_k, w_v, w_o,
     scores /= ((d_model // num_heads) ** 0.5)
 
     if mask is not None:
+        if mask.dim() == 3:
+            mask = mask.unsqueeze(1)  
         scores = scores.masked_fill(~mask, float('-inf'))
 
     row_max = scores.amax(dim=-1, keepdims=True)
@@ -514,8 +516,16 @@ def decoder_layer_masked_self_attention_sublayer(y, w_q, w_k, w_v, w_o, gamma, b
 
     return apply_residual_add_and_norm(y, attn_out, gamma, beta)
 
-# Step 44 - decoder_layer_cross_attention_sublayer (not yet solved)
-# TODO: implement
+# Step 44 - decoder_layer_cross_attention_sublayer
+import torch
+
+def decoder_layer_cross_attention_sublayer(y, encoder_output, w_q, w_k, w_v, w_o, gamma, beta, num_heads, src_mask):
+    # TODO: run multi-head cross-attention (Q from y, K/V from encoder_output) and wrap with add-and-norm
+    attn_out = assemble_multi_head_attention_forward(
+        y, encoder_output, encoder_output,
+        w_q, w_k, w_v, w_o, num_heads, mask=src_mask,
+    )[0]
+    return apply_residual_add_and_norm(y, attn_out, gamma, beta)
 
 # Step 45 - decoder_layer_feed_forward_sublayer (not yet solved)
 # TODO: implement
